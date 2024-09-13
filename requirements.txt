@@ -17,9 +17,10 @@ gpytoolbox==0.2.0
 # BaBaoChou
 # 
 
+# LLM
 groq==0.11.0
-
+# Model
 diffusers
-
+# GUI
 gradio==4.44.0
 gradio-litmodel3d==0.0.1
