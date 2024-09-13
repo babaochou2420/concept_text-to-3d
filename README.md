@@ -1,13 +1,11 @@
 # 工具 - 結合 SDXL 與 Fast-3D 從而擁有三種功能
 
 ## 測試動機
-> 目前在 HuggingFace 不乏許多 Text-to-3D 之 pipeline 可以使用，例如 OpenAI 的 [【shap-e】](https://huggingface.co/openai/shap-e) 以及 Microsoft 的 [【ldm3d】](https://huggingface.co/Intel/ldm3d)，但是呼叫的過程中只可輸入文字。
-
-> 另外又有模型專門從事 Image-to-3D，比如 StablityAI 的 [【Stable-Fast-3D】](https://huggingface.co/stabilityai/stable-fast-3d)，相對指定載入圖檔。
-
-> 因此好奇能否結合 Text-to-Image 與 Image-to-3D，模仿出 Text-to-3D 的模式。
-
-> 相信透過這種方式，變相也能透過擴增的方式讓該工具帶有前述的三種功能。
+目前在 HuggingFace 不乏許多 Text-to-3D 之 pipeline 可以使用，例如 OpenAI 的 [【shap-e】](https://huggingface.co/openai/shap-e) 以及 Microsoft 的 [【ldm3d】](https://huggingface.co/Intel/ldm3d)，但是呼叫的過程中只可輸入文字。
+<br><br>
+另外又有模型專門從事 Image-to-3D，比如 StablityAI 的 [【Stable-Fast-3D】](https://huggingface.co/stabilityai/stable-fast-3d)，相對指定載入圖檔。
+<br><br>
+開始好奇能否結合 Text-to-Image 與 Image-to-3D，模仿出 Text-to-3D 的模式。相信透過這種方式，變相也能透過擴增的方式讓該工具帶有前述的三種功能。
 
 ## 使用工具
 ### 模型
@@ -18,7 +16,7 @@
 - [【　Groq　】Playground API](https://console.groq.com/playground)
 
 ## 測試環境
-  `Windows 11` `Python 3.10.11` `CUDA 12.4` <br> `Visual Studio 2022 - 17.11.2` `【GPU】GeForce RTX3050 Ti`
+  `Windows 11` `Python 3.10.11` `CUDA 12.4` `Visual Studio 2022 - 17.11.2` `【GPU】GeForce RTX3050 Ti`
 
 ## 設計邏輯
 1. 選擇基底
@@ -71,6 +69,11 @@
     ```
 > [!IMPORTANT]
 > PyTorch 請另外對應系統環境自行安裝
+
+4. 更換金鑰
+- Groq
+  <br>
+  進入到 daos.prompt.py 並透過 ctrl+f 搜尋 `api_key`，換為個人的 API Key
 
 ## 操作方式
 > [!IMPORTANT]

@@ -1,7 +1,7 @@
 import json
 from groq import Groq
 
-groq = Groq(api_key="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")
+groq = Groq(api_key="")
 
 
 class PromptDao:
