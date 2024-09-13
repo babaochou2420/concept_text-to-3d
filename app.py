@@ -54,10 +54,6 @@ model = SF3D.from_pretrained(
 model.eval()
 model = model.to(device)
 
-example_files = [
-    os.path.join("demo_files/examples", f) for f in os.listdir("demo_files/examples")
-]
-
 
 def run_model(input_image, remesh_option, vertex_count, texture_size):
     start = time.time()
@@ -239,9 +235,10 @@ def run_button(
 
 
 def requires_bg_remove(image, fr):
+
     if image is None:
         return (
-            gr.update(visible=False, value="Run"),
+            gr.update(value="Run", visible=False),
             None,
             None,
             gr.update(value=None, visible=False),
@@ -263,14 +260,28 @@ def requires_bg_remove(image, fr):
             gr.update(visible=False),
             gr.update(visible=False),
         )
-    return (
-        gr.update(value="Remove Background", visible=True),
-        None,
-        None,
-        gr.update(value=None, visible=False),
-        gr.update(visible=False),
-        gr.update(visible=False),
-    )
+    else:
+        image = remove_background(image)
+
+        sqr_crop = square_crop(image)
+        fr_res = resize_foreground(sqr_crop, fr)
+
+        return (
+            gr.update(value="Run", visible=True),
+            sqr_crop,
+            fr_res,
+            gr.update(value=show_mask_img(fr_res), visible=True),
+            gr.update(value=None, visible=False),
+            gr.update(visible=False),
+        )
+        return (
+            gr.update(value="Run", visible=True),
+            None,
+            None,
+            gr.update(value=None, visible=False),
+            gr.update(visible=False),
+            gr.update(visible=False),
+        )
 
 
 def update_foreground_ratio(img_proc, fr):
@@ -305,25 +316,25 @@ with gr.Blocks() as demo:
             )
             with gr.Row(variant="panel"):
                 with gr.Column():
+                    with gr.Column():
+                        text_input = gr.Textbox(label="Text Description")
+                        generate_button = gr.Button("Generate Image")
+
+                        def btn_genImage(description):
+
+                            promptDao = PromptDao()
+
+                            pos, neg = promptDao.refine_prompt(description)
+
+                            image2DDao = Image2DDao()
+
+                            image2D = image2DDao.generate_image(pos, neg)
+
+                            image2D_rmbg = remove_background(image2D)
+
+                            return image2D_rmbg
+
                     with gr.Row():
-
-                        with gr.Column():
-                            text_input = gr.Textbox(label="Text Description")
-                            generate_button = gr.Button("Generate Image")
-
-                            def on_generate_button(description):
-
-                                promptDao = PromptDao()
-
-                                pos, neg = promptDao.refine_prompt(description)
-
-                                image2DDao = Image2DDao()
-
-                                image2D = image2DDao.generate_image(pos, neg)
-
-                                image2D_rmbg = remove_background(image2D)
-
-                                return image2D_rmbg
 
                         input_img = gr.Image(
                             type="pil",
@@ -340,7 +351,7 @@ with gr.Blocks() as demo:
                         )
 
                         generate_button.click(
-                            on_generate_button, inputs=[text_input], outputs=[input_img]
+                            btn_genImage, inputs=[text_input], outputs=[input_img]
                         )
 
                     foreground_ratio = gr.Slider(
@@ -408,8 +419,8 @@ with gr.Blocks() as demo:
                                 file_count="single",
                             )
                             example_hdris = [
-                                os.path.join("demo_files/hdri", f)
-                                for f in os.listdir("demo_files/hdri")
+                                os.path.join("src/hdri", f)
+                                for f in os.listdir("src/hdri")
                             ]
                             hdr_illumination_example = gr.Examples(
                                 examples=example_hdris,
@@ -423,11 +434,6 @@ with gr.Blocks() as demo:
                                 inputs=hdr_illumination_file,
                                 outputs=[output_3d],
                             )
-
-            examples = gr.Examples(
-                examples=example_files,
-                inputs=input_img,
-            )
 
             input_img.change(
                 requires_bg_remove,
@@ -462,111 +468,5 @@ with gr.Blocks() as demo:
                     hdr_row,
                 ],
             )
-
-        with gr.Tab("Text to 3D"):
-            gr.Markdown(
-                """
-                # Text to 3D: Generate 3D Model from Text Description
-
-                **Text to 3D** is a state-of-the-art method for generating 3D models from text descriptions.
-                This demo allows you to input a text description and generate a 3D model from it.
-
-                **Tips**
-                1. You can adjust the object size by dragging the image.
-                2. You can adjust the object color by clicking on the color palette.
-                """
-            )
-            with gr.Row():
-                with gr.Column():
-                    text_input = gr.Textbox(label="Text Description")
-                    generate_button = gr.Button("Generate Image")
-
-                    run_btn = gr.Button(value="Convert", visible=True)
-
-                    def on_generate_button(description):
-
-                        promptDao = PromptDao()
-
-                        pos, neg = promptDao.refine_prompt(description)
-
-                        image2DDao = Image2DDao()
-
-                        image2D = image2DDao.generate_image(pos, neg)
-
-                        image2D_rmbg = remove_background(image2D)
-
-                        return image2D_rmbg
-
-                    img_ready = gr.Image(
-                        label="Generated Image",
-                        type="pil",
-                        image_mode="RGBA",
-                        interactive=True,
-                    )
-
-                    generate_button.click(
-                        on_generate_button, inputs=[text_input], outputs=[img_ready]
-                    )
-
-                    run_btn.click(
-                        run_button,
-                        inputs=[
-                            run_btn,
-                            input_img,
-                            background_remove_state,
-                            foreground_ratio,
-                            remesh_option,
-                            vertex_count_slider,
-                            texture_size,
-                        ],
-                        outputs=[
-                            run_btn,
-                            img_proc_state,
-                            background_remove_state,
-                            preview_removal,
-                            output_3d,
-                            hdr_row,
-                        ],
-                    )
-
-                with gr.Column():
-                    output_3d = LitModel3D(
-                        label="3D Model",
-                        visible=False,
-                        clear_color=[0.0, 0.0, 0.0, 0.0],
-                        tonemapping="aces",
-                        contrast=1.0,
-                        scale=1.0,
-                    )
-                    with gr.Column(visible=False, scale=1.0) as hdr_row:
-                        gr.Markdown(
-                            """## HDR Environment Map
-
-                        Select an HDR environment map to light the 3D model. You can also upload your own HDR environment maps.
-                        """
-                        )
-
-                        with gr.Row():
-                            hdr_illumination_file = gr.File(
-                                label="HDR Env Map",
-                                file_types=[".hdr"],
-                                file_count="single",
-                            )
-                            example_hdris = [
-                                os.path.join("demo_files/hdri", f)
-                                for f in os.listdir("demo_files/hdri")
-                            ]
-                            hdr_illumination_example = gr.Examples(
-                                examples=example_hdris,
-                                inputs=hdr_illumination_file,
-                            )
-
-                            hdr_illumination_file.change(
-                                lambda x: gr.update(
-                                    env_map=x.name if x is not None else None
-                                ),
-                                inputs=hdr_illumination_file,
-                                outputs=[output_3d],
-                            )
 
 demo.queue().launch(share=False)
