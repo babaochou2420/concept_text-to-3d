@@ -11,3 +11,15 @@ rembg==2.0.57; sys_platform == 'darwin'
 git+https://github.com/vork/PyNanoInstantMeshes.git
 gpytoolbox==0.2.0
 ./texture_baker/
+
+
+# 
+# BaBaoChou
+# 
+
+groq==0.11.0
+
+diffusers
+
+gradio==4.44.0
+gradio-litmodel3d==0.0.1

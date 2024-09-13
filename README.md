@@ -1,68 +1,97 @@
-# SF3D: Stable Fast 3D Mesh Reconstruction with UV-unwrapping and Illumination Disentanglement
+# 工具 - 結合 SDXL 與 Fast-3D 從而擁有三種功能
 
-<a href="https://arxiv.org/abs/2408.00653"><img src="https://img.shields.io/badge/Arxiv-2408.00653-B31B1B.svg"></a> <a href="https://huggingface.co/stabilityai/stable-fast-3d"><img src="https://img.shields.io/badge/%F0%9F%A4%97%20Model_Card-Huggingface-orange"></a> <a href="https://huggingface.co/spaces/stabilityai/stable-fast-3d"><img src="https://img.shields.io/badge/%F0%9F%A4%97%20Gradio%20Demo-Huggingface-orange"></a>
+## 測試動機
+> 目前在 HuggingFace 不乏許多 Text-to-3D 之 pipeline 可以使用，例如 OpenAI 的 [【shap-e】](https://huggingface.co/openai/shap-e) 以及 Microsoft 的 [【ldm3d】](https://huggingface.co/Intel/ldm3d)，但是呼叫的過程中只可輸入文字。
 
-<div align="center">
-  <img src="demo_files/teaser.gif" alt="Teaser">
-</div>
+> 另外又有模型專門從事 Image-to-3D，比如 StablityAI 的 [【Stable-Fast-3D】](https://huggingface.co/stabilityai/stable-fast-3d)，相對指定載入圖檔。
 
-<br>
+> 因此好奇能否結合 Text-to-Image 與 Image-to-3D，模仿出 Text-to-3D 的模式。
 
-This is the official codebase for **Stable Fast 3D**, a state-of-the-art open-source model for **fast** feedforward 3D mesh reconstruction from a single image.
+> 相信透過這種方式，變相也能透過擴增的方式讓該工具帶有前述的三種功能。
 
-<br>
+## 使用工具
+### 模型
+- [【StablityAI】Stable Diffusion XL 1.0 - Turbo](https://huggingface.co/stabilityai/sdxl-turbo)
+- [【StablityAI】Stable-Fast-3D](https://huggingface.co/stabilityai/stable-fast-3d)
 
-<p align="center">
-    <img width="450" src="demo_files/comp.gif"/>
-</p>
+### 端口
+- [【　Groq　】Playground API](https://console.groq.com/playground)
 
-<p align="center">
-    <img width="450" src="demo_files/scatterplot.jpg"/>
-</p>
+## 測試環境
+  `Windows 11` `Python 3.10.11` `CUDA 12.4` <br> `Visual Studio 2022 - 17.11.2` `【GPU】GeForce RTX3050 Ti`
 
-Stable Fast 3D is based on [TripoSR](https://github.com/VAST-AI-Research/TripoSR) but introduces several new key techniques. For one, we explicitly optimize our model to produce good meshes without artifacts alongside textures with UV unwrapping. We also delight the color and predict material parameters so the assets can be easily integrated into a game. We achieve all of this while still maintaining the fast inference speeds of TripoSR.
+## 設計邏輯
+1. 選擇基底
+  - 可以想像 Image-to-3D 將為主要的操作核心，本工具建立於原模型提供的 gradio_app.py 之上進行擴增
 
-## Getting Started
+2. 新增功能
+  - 文字輸入
+    > 用戶能在此處輸入物件的敘述
+  - 提詞優化
+    > 用戶可能闡述過於簡單，且不清楚怎麼設計負面提詞，因此結合 LLM 進行設計與優化
+  - 圖片生成
+    > 接收優化後的題詞開始產生圖片
 
-### Installation
+## 設備需求
+- DISK
+  - 閒置空間 -- 11 GB
+- RAM
+  - 整體空間 -- 16 GB
+- GPU
+  - 顯卡架構 -- RTX 20XX ⬆️
+  - VRAM -- 8 GB
 
-Ensure your environment is:
-- Python >= 3.8
-- Optional: CUDA or MPS has to be available
-- For Windows **(experimental)**: Visual Studio 2022
-- Has PyTorch installed according to your platform: https://pytorch.org/get-started/locally/ [Make sure the Pytorch CUDA version matches your system's.]
-- Update setuptools by `pip install -U setuptools==69.5.1`
-- Install wheel by `pip install wheel`
+## 安裝方式
+### Windows
+1. 環境安裝
+  - Python 3.10.11
+    https://www.python.org/downloads/release/python-31011/
+2. 複製專案
+  - 
+    ``` bat
+    git clone https://github.com/babaochou2420/concept_text-to-3d.git
+    ```
+3. 套件安裝
+  - 建立 venv 
+      ``` bat
+      py -3.10 -m venv .venv
+      ```
+      ``` bat
+      .\.venv\Scripts\activate
+      ```
+  - 安裝套件
+    ``` python
+    pip install -U setuptools==69.5.1
+    ```
+    ``` python
+    pip install wheel
+    ```
+    ``` python
+    pip install -U -r .\requirements.txt
+    ```
+> [!IMPORTANT]
+> PyTorch 請另外對應系統環境自行安裝
 
-Then, install the remaining requirements with `pip install -r requirements.txt`.
-For the gradio demo, an additional `pip install -r requirements-demo.txt` is required.
+## 操作方式
+> [!IMPORTANT]
+> 首次執行需要 `huggingface-cli login` 並填寫兩份 StablityAI 模型的資料才可進行模型的下載
 
-### Requesting Access and Login
+![](https://bbc-blog-storage.s3.ap-northeast-1.amazonaws.com/wp-content/uploads/2024/09/image-10.png)
 
-Our model is gated at [Hugging Face](https://huggingface.co):
+### Gradio Interface
+1. 進入 venv
+  ``` bat
+  .\.venv\Scripts\activate
+  ```
+2. 執行介面
+  ``` python
+  python ./app.py
+  ```
+3. 載入圖片
+  - 文字生圖
+  - 上傳圖檔
 
-1. Log in to Hugging Face and request access [here](https://huggingface.co/stabilityai/stable-fast-3d).
-2. Create an access token with read permissions [here](https://huggingface.co/settings/tokens).
-3. Run `huggingface-cli login` in the environment and enter the token.
-
-### Support for MPS (for Mac Silicon) **(experimental)**
-
-Stable Fast 3D can also run on Macs via the MPS backend, with the texture baker using custom metal kernels similar to the corresponding CUDA kernels.
-
-Note that support is **experimental** and not guaranteed to give the same performance and/or quality as the CUDA backend.
-
-MPS backend support was tested on M1 max 64GB with the latest PyTorch nightly release. We recommend you install the latest PyTorch (2.4.0 as of writing) and/or the nightly version to avoid any issues that my arise with older PyTorch versions.
-
-You also need to run the code with `PYTORCH_ENABLE_MPS_FALLBACK=1`.
-
-MPS currently consumes more memory compared to the CUDA PyTorch backend. We recommend running the CPU version if your system has less than 32GB of unified memory.
-
-### Windows Support **(experimental)**
-
-To run Stable Fast 3D on Windows, you must install Visual Studio (currently tested on VS 2022) and the appropriate PyTorch and CUDA versions.
-Then, follow the installation steps as mentioned above.
-
-Note that Windows support is **experimental** and not guaranteed to give the same performance and/or quality as Linux.
+## $ Stable-Fast-3D 部分原稿
 
 ### CPU Support
 
@@ -80,31 +109,6 @@ This will save the reconstructed 3D model as a GLB file to `output/`. You can al
 You may also use `--texture-resolution` to specify the resolution in pixels of the output texture and `--remesh_option` to specify the remeshing operation (None, Triangle, Quad).
 
 For detailed usage of this script, use `python run.py --help`.
-
-### Local Gradio App
-
-```sh
-python gradio_app.py
-```
-
-
-## ComfyUI extension
-
-Custom nodes and an [example workflow](./demo_files/workflows/sf3d_example.json) are provided for [ComfyUI](https://github.com/comfyanonymous/ComfyUI).
-
-To install:
-
-* Clone this repo into ```custom_nodes```:
- ```shell
-  $ cd ComfyUI/custom_nodes
-  $ git clone https://github.com/Stability-AI/stable-fast-3d
- ```
-* Install dependencies:
- ```shell
-  $ cd sf3d_code_release
-  $ pip install -r requirements.txt
- ```
-* Restart ComfyUI
 
 ## Remesher Options:
 
